@@ -1,11 +1,11 @@
 const sqlite3 = require('sqlite3');
 const express = require('express');
-const employeesRouter = express();
+const employeeRouter = express();
 
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
 
-employeesRouter.get('/',(req,res,next) =>{
+employeeRouter.get('/',(req,res,next) =>{
     db.all('SELECT * FROM Employee where Employee.is_current_employee = 1', (err,row) =>{
       if (err){
         //Logs any error to the console if there is one
@@ -21,7 +21,7 @@ employeesRouter.get('/',(req,res,next) =>{
     })
 })
 
-employeesRouter.post('/', (req, res, next) => {
+employeeRouter.post('/', (req, res, next) => {
 const newEmployee = req.body.employee;
 const isCurrentEmployee = req.body.employee.isCurrentEmployee === 0 ? 0 : 1;
 
@@ -48,7 +48,7 @@ const isCurrentEmployee = req.body.employee.isCurrentEmployee === 0 ? 0 : 1;
   })
 });
 
-employeesRouter.param("employeeId",(req,res,next,id) =>{
+employeeRouter.param("employeeId",(req,res,next,id) =>{
   const employeeId = id;
   const sql = 'SELECT * FROM Employee where Employee.id=$employeeId';
   const values = {$employeeId: employeeId};
@@ -80,8 +80,62 @@ employeesRouter.param("employeeId",(req,res,next,id) =>{
   })
 })
 
-employeesRouter.get('/:employeeId',(req,res,next) =>{
+employeeRouter.get('/:employeeId',(req,res,next) =>{
   res.status(200).json(res.body);
 })
 
-module.exports = employeesRouter;
+employeeRouter.put('/:employeeId',(req,res,next) =>{
+  const newEmployee = req.body.employee;
+
+  if (!newEmployee.name || !newEmployee.position ||
+    !newEmployee.wage){
+      console.log("BAD Update");
+      return res.status(400).send();
+    }
+  else{
+    //The SQL standard says that strings must use 'single quotes',
+    //and identifiers (such as table and column names), when quoted, must use "double quotes".
+    //For compatibility with MySQL, SQLite also allows to use single quotes for identifiers
+    //and double quotes for strings, but only when the context makes the meaning unambiguous.
+    //To avoid issues, just try to stick to the standard...
+    const sql = 'UPDATE "Employee" SET "name" = $name, "position" = $position,"wage" = $wage WHERE Employee.id = $id';
+
+    const values = {
+      $id: req.params.id,
+      $name: newEmployee.name,
+      $position: newEmployee.position,
+      $wage: newEmployee.wage
+    };
+
+    db.run(sql, values, function(error) {
+      if (error) {
+        next(error);
+      } else {
+        //Note that the our previously declared 'values' Object cannot be used in
+        //our db.get statement as the json Object must ONLY contain values used in our
+        //SQLite query in order to function appropriately
+        db.get('SELECT * FROM Employee WHERE Employee.id = $id', {$id: req.params.id}, (error, updatedEmployee) => {
+          return res.status(200).json({employee: updatedEmployee});
+        });
+      }
+    });
+  }
+})
+
+employeeRouter.delete('/:employeeId',(req,res,next) =>{
+  const sql = `UPDATE Employee
+  SET is_current_employee = 0 WHERE Employee.id = $id`;
+  const values = {$id: req.params.id};
+  db.run(sql, values, function(error) {
+    if (error) {
+      console.log(error);
+    } else {
+      db.get('SELECT * FROM Employee WHERE Employee.id = $id', values, (error, updatedEmployee) => {
+        return res.status(200).json({employee: updatedEmployee});
+      });
+    }
+  });
+})
+
+
+module.exports = employeeRouter;

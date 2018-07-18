@@ -1,8 +1,8 @@
 const express = require('express');
 const apiRouter = express();
 
-const employeesRouter = require('./employees.js');
-apiRouter.use('/employees', employeesRouter);
+const employeeRouter = require('./employees.js');
+apiRouter.use('/employees', employeeRouter);
 
 //const seriesRouter = require('./series.js');
 //apiRouter.use('/series', seriesRouter);
