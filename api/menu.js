@@ -9,6 +9,8 @@ menuRouter.get('/',(req,res,next) =>{
       if (err){
         //Logs any error to the console if there is one
         //then extis function
+        //Note that 'throwing' an error will cause Javascript to stop
+        //functioning also
         console.log(err);
         return;
       }
@@ -80,7 +82,6 @@ menuRouter.get('/:menuId',(req,res,next) =>{
 
 menuRouter.put('/:menuId',(req,res,next) =>{
   const newMenu = req.body.menu;
-  console.log(newMenu);
   if (!newMenu.title){
       console.log("BAD Update");
       return res.status(400).send();
@@ -114,18 +115,33 @@ menuRouter.put('/:menuId',(req,res,next) =>{
 })
 
 menuRouter.delete('/:menuId',(req,res,next) =>{
-  const sql = `UPDATE Menu
-  SET is_current_menu = 0 WHERE Menu.id = $id`;
-  const values = {$id: req.params.id};
+  db.get('SELECT * FROM MenuItem WHERE menu_id = $menuId',{$menuId:req.params.menuId},
+  function(error,row){
+    if(error){
+      console.log(err);
+      return;
+    }
+    else if(row){
+      console.log("There's a menu item with our Menu's ID!");
+      return res.sendStatus(400);
+    }
+  const sql = 'DELETE FROM Menu WHERE Menu.id = $id';
+  const values = {$id: req.params.menuId};
   db.run(sql, values, function(error) {
     if (error) {
       console.log(error);
+      return;
     } else {
-      db.get('SELECT * FROM Menu WHERE Menu.id = $id', values, (error, updatedMenu) => {
-        return res.status(200).json({menu: updatedMenu});
+      db.get('SELECT * FROM Menu WHERE Menu.id = $id',{$id : req.params.menuId}, (error, deletedMenu) => {
+        if(error){
+          console.log(error);
+        }
+        return res.status(204).send();
       });
     }
   });
 })
+})
+
 
 module.exports = menuRouter;
