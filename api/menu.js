@@ -4,6 +4,9 @@ const menuRouter = express();
 
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
+const menuItemsRouter = require('./menu-items.js');
+menuRouter.use('/:menuId/menu-items', menuItemsRouter);
+
 menuRouter.get('/',(req,res,next) =>{
     db.all('SELECT * FROM Menu', (err,row) =>{
       if (err){
@@ -62,7 +65,7 @@ menuRouter.param("menuId",(req,res,next,id) =>{
     }
      //Execute if no errors in sqlite query
       //Calls next middleware function
-      req.params.id = menuId;
+      req.params.menuId = menuId;
 
       //Attaches menu object with row properties
       //to our response body
@@ -95,7 +98,7 @@ menuRouter.put('/:menuId',(req,res,next) =>{
     const sql = 'UPDATE "Menu" SET "title" = $title WHERE Menu.id = $id';
 
     const values = {
-      $id: req.params.id,
+      $id: req.params.menuId,
       $title: newMenu.title
     };
 
@@ -106,7 +109,7 @@ menuRouter.put('/:menuId',(req,res,next) =>{
         //Note that the our previously declared 'values' Object cannot be used in
         //our db.get statement as the json Object must ONLY contain values used in our
         //SQLite query in order to function appropriately
-        db.get('SELECT * FROM Menu WHERE Menu.id = $id', {$id: req.params.id}, (error, updatedMenu) => {
+        db.get('SELECT * FROM Menu WHERE Menu.id = $id', {$id: req.params.menuId}, (error, updatedMenu) => {
           return res.status(200).json({menu: updatedMenu});
         });
       }
