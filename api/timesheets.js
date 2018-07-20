@@ -1,18 +1,18 @@
 const sqlite3 = require('sqlite3');
 //Note that since we are using this route to send HTTP requests
-//affecting the "menu items" of a given "menu", we must pass along
-//the 'menuId' parameter from the parent router to be used in manipulating
+//affecting the "timesheets" of a given "employee", we must pass along
+//the 'employeeId' parameter from the parent router to be used in manipulating
 //the appropriate row in our 'Timesheet' SQL table
 
 //Also the following code line is required in merging our router's parameters
-//with its parent router (menuRouter)
+//with its parent router (employeeRouter)
 const timesheetRouter =  require('express').Router({mergeParams:true});
 
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
 timesheetRouter.get('/',(req,res,next) =>{
-  db.all('SELECT * FROM Timesheet where menu_id = $menuId',
-  {$menuId:req.params.menuId}, (err,row) =>{
+  db.all('SELECT * FROM Timesheet where employee_id = $employeeId',
+  {$employeeId:req.params.employeeId}, (err,row) =>{
     if (err){
       //Logs any error to the console if there is one
       //then extis function
@@ -29,29 +29,28 @@ timesheetRouter.get('/',(req,res,next) =>{
 
 timesheetRouter.post('/', (req, res, next) => {
             const newTimesheet = req.body.timesheet;
-            if (!newTimesheet.name || !newTimesheet.description ||
-                !newTimesheet.inventory || !newTimesheet.price) {
-                console.log("INVALID Menu Item");
+            if (!newTimesheet.hours || !newTimesheet.rate ||
+                !newTimesheet.date) {
+                console.log("INVALID Timesheet");
                 return res.status(400).send();
             }
 
-            db.get('SELECT * FROM Menu WHERE Menu.id = $menuId',
-            {$menuId: req.params.menuId},
+            db.get('SELECT * FROM Employee WHERE Employee.id = $employeeId',
+            {$employeeId: req.params.employeeId},
             (err, row) => {
                 if (err) {
                     console.log(err);
                 }
                 if (row = undefined) {
-                    console.log('BAD Menu ID');
+                    console.log('BAD Employee ID');
                     return res.status(400).send();
                 }
-                const sql = 'INSERT INTO Timesheet (name, description,inventory,price,menu_id) VALUES ($name, $description,$inventory,$price,$menu_id)';
+                const sql = 'INSERT INTO Timesheet (hours,rate,date,employee_id) VALUES ($hours,$rate,$date,$employee_id)';
                 const values = {
-                    $name: newTimesheet.name,
-                    $description: newTimesheet.description,
-                    $inventory:newTimesheet.inventory,
-                    $price: newTimesheet.price,
-                    $menu_id: req.params.menuId
+                    $hours: newTimesheet.hours,
+                    $date: newTimesheet.date,
+                    $rate:newTimesheet.rate,
+                    $employee_id: req.params.employeeId
                 };
 
                 db.run(sql, values, function(err) {
@@ -104,8 +103,8 @@ timesheetRouter.param("timesheetId",(req,res,next,timesheetId) =>{
 timesheetRouter.put('/:timesheetId',(req,res,next) =>{
   const newTimesheet = req.body.timesheet;
 
-  if (!newTimesheet.name || !newTimesheet.description ||
-      !newTimesheet.inventory || !newTimesheet.price){
+  if (!newTimesheet.hours || !newTimesheet.rate ||
+      !newTimesheet.date){
       console.log("BAD Update");
       return res.status(400).send();
     }
@@ -115,14 +114,13 @@ timesheetRouter.put('/:timesheetId',(req,res,next) =>{
     //For compatibility with MySQL, SQLite also allows to use single quotes for identifiers
     //and double quotes for strings, but only when the context makes the meaning unambiguous.
     //To avoid problems, just try to stick to the standard...
-    const sql = 'UPDATE "Timesheet" SET "name" = $name, "description" = $description,"inventory" = $inventory, "price" = $price WHERE Timesheet.id = $id';
+    const sql = 'UPDATE "Timesheet" SET "hours" = $hours, "date" = $date,"rate" = $rate WHERE Timesheet.id = $id';
 
     const values = {
       $id: req.params.timesheetId,
-      $name: newTimesheet.name,
-      $description: newTimesheet.description,
-      $inventory: newTimesheet.inventory,
-      $price: newTimesheet.price
+      $hours: newTimesheet.hours,
+      $rate: newTimesheet.rate,
+      $date: newTimesheet.date,
     };
 
     db.run(sql, values, function(error) {
@@ -132,8 +130,8 @@ timesheetRouter.put('/:timesheetId',(req,res,next) =>{
         //Note that the our previously declared 'values' Object cannot be used in
         //our db.get statement as the json Object must ONLY contain values used in our
         //SQLite query in order to function appropriately
-        db.get('SELECT * FROM Timesheet WHERE Timesheet.id = $id', {$id: req.params.timesheetId}, (error, updatedTimesheets) => {
-          return res.status(200).json({timesheet: updatedTimesheets});
+        db.get('SELECT * FROM Timesheet WHERE Timesheet.id = $id', {$id: req.params.timesheetId}, (error, updatedTimesheet) => {
+          return res.status(200).json({timesheet: updatedTimesheet});
         });
       }
     });
@@ -145,11 +143,15 @@ timesheetRouter.delete('/:timesheetId',(req,res,next) =>{
   const values = {$id: req.params.timesheetId};
   db.run(sql, values, function(error) {
     if (error) {
-      next(error);
+      console.log(error);
     } else {
       db.get('SELECT * FROM Timesheet WHERE Timesheet.id = $id',{$id : req.params.timesheetId}, (error, deletedTimesheet) => {
         if(error){
           console.log(error);
+        }
+        else if(deletedTimesheet !== undefined){
+          console.log('DELETE unsuccessful');
+          return;
         }
         return res.status(204).send();
       });

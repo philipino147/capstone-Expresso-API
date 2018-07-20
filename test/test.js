@@ -11,7 +11,7 @@ const seed = require('./seed.js');
 const prodDb = new sqlite3.Database('./database.sqlite');
 const testDb = new sqlite3.Database(process.env.TEST_DATABASE);
 
-xdescribe('Employee Table', function() {
+describe('Employee Table', function() {
   it('should exist', function(done) {
     prodDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='Employee'", (error, table) => {
       if (error || !table) {
@@ -95,7 +95,7 @@ xdescribe('Employee Table', function() {
   });
 });
 
-xdescribe('Timesheet Table', function() {
+describe('Timesheet Table', function() {
   it('should exist', function(done) {
     prodDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='Timesheet'", (error, table) => {
       if (error || !table) {
@@ -177,7 +177,7 @@ xdescribe('Timesheet Table', function() {
   });
 });
 
-xdescribe('Menu Table', function() {
+describe('Menu Table', function() {
   it('should exist', function(done) {
     prodDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='Menu'", (error, table) => {
       if (error || !table) {
@@ -217,7 +217,7 @@ xdescribe('Menu Table', function() {
   });
 });
 
-xdescribe('MenuItem Table', function() {
+describe('MenuItem Table', function() {
   it('should exist', function(done) {
     prodDb.get("SELECT name FROM sqlite_master WHERE type='table' AND name='MenuItem'", (error, table) => {
       if (error || !table) {
@@ -299,7 +299,7 @@ xdescribe('MenuItem Table', function() {
   });
 });
 
-xdescribe('GET /api/employees', function() {
+describe('GET /api/employees', function() {
   before(function(done) {
     seed.seedEmployeeDatabase(done);
   });
@@ -323,7 +323,7 @@ xdescribe('GET /api/employees', function() {
   });
 });
 
-xdescribe('GET /api/employees/:id', function() {
+describe('GET /api/employees/:id', function() {
   before(function(done) {
     seed.seedEmployeeDatabase(done);
   });
@@ -354,7 +354,7 @@ xdescribe('GET /api/employees/:id', function() {
   });
 });
 
-xdescribe('POST /api/employees', function() {
+describe('POST /api/employees', function() {
   let newEmployee;
 
   beforeEach(function(done) {
@@ -425,7 +425,7 @@ xdescribe('POST /api/employees', function() {
   });
 });
 
-xdescribe('PUT /api/employees/:id', function() {
+describe('PUT /api/employees/:id', function() {
   let updatedEmployee;
 
   beforeEach(function(done) {
@@ -491,7 +491,7 @@ xdescribe('PUT /api/employees/:id', function() {
   });
 });
 
-xdescribe('DELETE /api/employees/:id', function() {
+describe('DELETE /api/employees/:id', function() {
   beforeEach(function(done) {
     seed.seedEmployeeDatabase(done);
   });
@@ -763,7 +763,7 @@ describe('DELETE /api/employees/:employeeId/timesheets/:timesheetId', function()
   });
 });
 
-xdescribe('GET /api/menus', function() {
+describe('GET /api/menus', function() {
   before(function(done) {
     seed.seedMenuDatabase(done);
   });
@@ -787,7 +787,7 @@ xdescribe('GET /api/menus', function() {
   });
 });
 
-xdescribe('GET /api/menus/:id', function() {
+describe('GET /api/menus/:id', function() {
   before(function(done) {
     seed.seedMenuDatabase(done);
   });
@@ -815,7 +815,7 @@ xdescribe('GET /api/menus/:id', function() {
   });
 });
 
-xdescribe('POST /api/menus', function() {
+describe('POST /api/menus', function() {
   let newMenu;
 
   beforeEach(function(done) {
@@ -867,7 +867,7 @@ xdescribe('POST /api/menus', function() {
   });
 });
 
-xdescribe('PUT /api/menus/:id', function() {
+describe('PUT /api/menus/:id', function() {
   let updatedMenu;
 
   beforeEach(function(done) {
@@ -922,7 +922,7 @@ xdescribe('PUT /api/menus/:id', function() {
   });
 });
 
-xdescribe('DELETE /api/menus/:id', function() {
+describe('DELETE /api/menus/:id', function() {
   beforeEach(function(done) {
     seed.seedMenuDatabase(() => seed.seedMenuItemDatabase(done));
   });
@@ -968,7 +968,7 @@ xdescribe('DELETE /api/menus/:id', function() {
   });
 });
 
-xdescribe('GET /api/menus/:menuId/menu-items', function() {
+describe('GET /api/menus/:menuId/menu-items', function() {
   before(function(done) {
     seed.seedMenuItemDatabase(done);
   });
@@ -1006,7 +1006,7 @@ xdescribe('GET /api/menus/:menuId/menu-items', function() {
       });
 });
 
-xdescribe('POST /api/menus/:menuId/menu-items', function() {
+describe('POST /api/menus/:menuId/menu-items', function() {
   let newMenuItem;
 
   beforeEach(function(done) {
@@ -1075,7 +1075,7 @@ xdescribe('POST /api/menus/:menuId/menu-items', function() {
   });
 });
 
-xdescribe('PUT /api/menus/:menuId/menu-items/:menuItemId', function() {
+describe('PUT /api/menus/:menuId/menu-items/:menuItemId', function() {
   let updatedMenuItem;
 
   beforeEach(function(done) {
@@ -1158,7 +1158,7 @@ xdescribe('PUT /api/menus/:menuId/menu-items/:menuItemId', function() {
   });
 });
 
-xdescribe('DELETE /api/menus/:menuId/menu-items/:menuItemId', function() {
+describe('DELETE /api/menus/:menuId/menu-items/:menuItemId', function() {
   beforeEach(function(done) {
     seed.seedMenuItemDatabase(done);
   });

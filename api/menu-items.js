@@ -151,6 +151,10 @@ menuItemRouter.delete('/:menuItemId',(req,res,next) =>{
         if(error){
           console.log(error);
         }
+        else if(deletedMenuItem !== undefined){
+          console.log('DELETE unsuccessful');
+          return;
+        }
         return res.status(204).send();
       });
     }
